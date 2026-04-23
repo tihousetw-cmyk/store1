@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新增行事曆活動</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #111827;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+    }
+
+    .examples {
+      margin-top: 8px;
+      margin-bottom: 20px;
+    }
+
+    .examples p {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .example-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      background: #f3f4f6;
+      color: #4b5563;
+      border: none;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .chip:hover {
+      background: #e5e7eb;
+    }
+
+    button#submitBtn {
+      width: 100%;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button#submitBtn:hover { background: #4338ca; }
+    button#submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result {
+      margin-top: 20px;
+      border-radius: 10px;
+      padding: 16px;
+      display: none;
+    }
+
+    .result.success {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+    }
+
+    .result.error {
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .result.success .result-header { color: #15803d; }
+    .result.error .result-header { color: #b91c1c; }
+
+    .icon { font-size: 18px; }
+
+    .event-detail {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.8;
+    }
+
+    .event-detail span.label {
+      font-weight: 600;
+      color: #6b7280;
+      display: inline-block;
+      width: 48px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📅 新增行事曆活動</h1>
+    <p class="subtitle">用自然語言描述活動，AI 自動解析時間與地點，直接新增到你的 Google 行事曆。</p>
+
+    <label for="eventText">活動描述</label>
+    <textarea id="eventText" placeholder="例如：下週五下午三點在信義區開會，約兩小時"></textarea>
+
+    <div class="examples">
+      <p>範例（點擊套用）</p>
+      <div class="example-chips">
+        <button class="chip" onclick="setExample(this)">明天下午兩點牙醫診所</button>
+        <button class="chip" onclick="setExample(this)">下週一早上九點線上會議，一個半小時</button>
+        <button class="chip" onclick="setExample(this)">5/10 下午五點半 健身房</button>
+        <button class="chip" onclick="setExample(this)">Next Friday 10am team standup</button>
+      </div>
+    </div>
+
+    <button id="submitBtn" onclick="submit()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">解析並新增到行事曆</span>
+    </button>
+
+    <div class="result" id="result">
+      <div class="result-header">
+        <span class="icon" id="resultIcon"></span>
+        <span id="resultTitle"></span>
+      </div>
+      <div id="resultBody"></div>
+    </div>
+  </div>
+
+  <script>
+    function setExample(el) {
+      document.getElementById('eventText').value = el.textContent;
+      document.getElementById('eventText').focus();
+      hideResult();
+    }
+
+    function hideResult() {
+      var r = document.getElementById('result');
+      r.style.display = 'none';
+    }
+
+    function showResult(type, title, icon, bodyHtml) {
+      var r = document.getElementById('result');
+      r.className = 'result ' + type;
+      r.style.display = 'block';
+      document.getElementById('resultIcon').textContent = icon;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('resultBody').innerHTML = bodyHtml;
+    }
+
+    function setLoading(loading) {
+      var btn = document.getElementById('submitBtn');
+      var spinner = document.getElementById('spinner');
+      var btnText = document.getElementById('btnText');
+      btn.disabled = loading;
+      spinner.style.display = loading ? 'block' : 'none';
+      btnText.textContent = loading ? '解析中⋯⋯' : '解析並新增到行事曆';
+    }
+
+    function submit() {
+      var text = document.getElementById('eventText').value.trim();
+      if (!text) {
+        showResult('error', '請先輸入活動描述', '⚠️', '<p style="font-size:14px;color:#6b7280;">請在上方文字框輸入活動描述後再按送出。</p>');
+        return;
+      }
+
+      setLoading(true);
+      hideResult();
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          setLoading(false);
+          if (res.success) {
+            var body = '<div class="event-detail">';
+            body += '<div><span class="label">活動</span>' + escHtml(res.title) + '</div>';
+            body += '<div><span class="label">時間</span>' + escHtml(res.start) + ' &ndash; ' + escHtml(res.end) + '</div>';
+            if (res.location) {
+              body += '<div><span class="label">地點</span>' + escHtml(res.location) + '</div>';
+            }
+            if (res.description) {
+              body += '<div><span class="label">備註</span>' + escHtml(res.description) + '</div>';
+            }
+            body += '<div><span class="label">日曆</span>' + escHtml(res.calendarName) + '</div>';
+            body += '</div>';
+            showResult('success', '已成功新增到行事曆！', '✅', body);
+            document.getElementById('eventText').value = '';
+          } else {
+            showResult('error', '無法新增活動', '❌', '<p style="font-size:14px;color:#374151;">' + escHtml(res.error) + '</p>');
+          }
+        })
+        .withFailureHandler(function(err) {
+          setLoading(false);
+          showResult('error', '發生錯誤', '❌', '<p style="font-size:14px;color:#374151;">' + escHtml(err.message || String(err)) + '</p>');
+        })
+        .parseAndCreateEvent(text);
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // 按 Ctrl+Enter 或 Cmd+Enter 送出
+    document.getElementById('eventText').addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') submit();
+    });
+  </script>
+</body>
+</html>
